@@ -5,7 +5,7 @@ metadata:
   labels:
     app: flux-app-one
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: flux-app-one
