@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flux-app-one-deployment
+  labels:
+    app: flux-app-one
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flux-app-one
+  template:
+    metadata:
+      labels:
+        app: flux-app-one
+    spec:
+      containers:
+      - name: flux-app-one
+        image: hashicorp/http-echo
+        args:
+          - "-text=Hello [2], Kubernetes!"
+        ports:
+        - containerPort: 5678
