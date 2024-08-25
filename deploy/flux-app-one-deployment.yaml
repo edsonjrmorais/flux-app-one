@@ -18,6 +18,6 @@ spec:
       - name: flux-app-one
         image: hashicorp/http-echo
         args:
-          - "-text=Hello, Kubernetes!"
+          - "-text=Hello [1], Kubernetes!"
         ports:
         - containerPort: 5678
