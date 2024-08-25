@@ -1,24 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: busybox-deployment
+  name: flux-app-one-deployment
   labels:
-    app: busybox
+    app: flux-app-one
 spec:
-  replicas: 10
-  strategy: 
-    type: RollingUpdate
+  replicas: 1
   selector:
     matchLabels:
-      app: busybox
+      app: flux-app-one
   template:
     metadata:
       labels:
-        app: busybox
+        app: flux-app-one
     spec:
       containers:
-      - name: busybox
-        image: busybox
-        imagePullPolicy: IfNotPresent
-        
-        command: ['sh', '-c', 'echo Container 1 is Running ; sleep 3600']
+      - name: flux-app-one
+        image: hashicorp/http-echo
+        args:
+          - "-text=Hello, Kubernetes!"
+        ports:
+        - containerPort: 5678
