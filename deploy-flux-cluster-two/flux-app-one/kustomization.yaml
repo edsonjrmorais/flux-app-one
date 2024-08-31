@@ -6,7 +6,7 @@ replicas:
   name: flux-app-one-deployment
 images:
 - name: alpine
-  newTag: edge
+  newTag: latest
 resources:
 - ../../deploy/flux-app-one
 patches:
