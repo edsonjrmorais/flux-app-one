@@ -5,8 +5,8 @@ replicas:
 - count: 5
   name: flux-app-one-deployment
 images:
-- name: alpine
-  newTag: latest
+- name: nginx
+  newTag: stable-alpine3.20
 resources:
 - ../../deploy/flux-app-one
 patches:
