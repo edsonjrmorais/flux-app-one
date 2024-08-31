@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: flux-app-one
 replicas:
 - count: 5
-  name: flux-app-one-deployment-replica
+  name: flux-app-one-deployment
 resources:
 - ../../deploy/flux-app-one
 patches:
