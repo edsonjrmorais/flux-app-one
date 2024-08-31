@@ -20,4 +20,4 @@ spec:
         args:
           - "-text=Hello [0] [ deploy-flux-cluster-two ] [ final overlay ], Kubernetes!"
         ports:
-        - containerPort: 5678
+        - containerPort: 5679
