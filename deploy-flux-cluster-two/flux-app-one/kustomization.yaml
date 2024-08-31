@@ -1,6 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: flux-app-one
+replicas:
+- name: flux-app-one-deployment-replica
+  count: 5
 resources:
 - ../../deploy/flux-app-one
 patchesStrategicMerge:
