@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: alpine
-        image: alpine:edge
+        image: alpine
       - name: flux-app-one
         image: hashicorp/http-echo
         args:
