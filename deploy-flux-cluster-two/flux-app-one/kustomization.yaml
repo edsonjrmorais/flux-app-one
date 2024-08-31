@@ -6,7 +6,7 @@ replicas:
   name: flux-app-one-deployment
 images:
 - name: nginx
-  newTag: stable-alpine3.20
+  newTag: stable-alpine
 resources:
 - ../../deploy/flux-app-one
 patches:
