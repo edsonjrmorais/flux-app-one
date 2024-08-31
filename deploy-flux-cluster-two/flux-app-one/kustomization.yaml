@@ -4,6 +4,9 @@ namespace: flux-app-one
 replicas:
 - count: 5
   name: flux-app-one-deployment
+images:
+- name: alpine
+  newTag: edge
 resources:
 - ../../deploy/flux-app-one
 patches:
