@@ -5,3 +5,4 @@ resources:
 - ../../deploy/flux-app-one
 patchesStrategicMerge:
 - flux-app-one-deployment.yaml
+- flux-app-one-service.yaml
