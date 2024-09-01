@@ -14,6 +14,9 @@ commonLabels:
 commonAnnotations:
  source: flux-cd-training
  just-a-common-annotation: any-common-annotation-value
+configMapGenerator:
+  - name: config-map-from-env-file
+    env: config_map_file.env
 resources:
 - ../../deploy/flux-app-one
 patches:
