@@ -18,7 +18,7 @@ spec:
       - name: nginx
         image: {{ .Values.image.nginx }}
       - name: {{ .Chart.Name }}
-        image: {{ .Values.image.flux-app-one-helm-chart }}
+        image: {{ .Values.image.app }}
         args:
           - "{{ .Values.args }}"
         ports:
