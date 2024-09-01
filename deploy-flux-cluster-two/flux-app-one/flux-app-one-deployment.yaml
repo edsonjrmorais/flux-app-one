@@ -23,3 +23,7 @@ spec:
           - "-text=Hello [overlay test] [ deploy-flux-cluster-two ] [ final overlay ], Kubernetes!"
         ports:
         - containerPort: 5678
+        envFrom:
+          - configMapRef:
+              name: flux-app-one-config-map-from-env-file
+              optional: true
