@@ -1,0 +1,9 @@
+apiVersion: v2
+name: flux-app-one-helm-chart
+description: A Helm chart for Kubernetes
+
+# A chart can be either an 'application' or a 'library' chart.
+type: application
+
+version: 0.1.0
+appVersion: "1.0"
