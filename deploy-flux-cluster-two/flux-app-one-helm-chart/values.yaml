@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   nginx: "nginx"
-  app: "hashicorp/http-echo"
+  flux-app-one-helm-chart: "hashicorp/http-echo"
 
 service:
   type: LoadBalancer
