@@ -19,7 +19,7 @@ commonAnnotations:
 configMapGenerator:
 - envs:
   - config_map_file.env
-  name: config-map-from-env-file
+  name: flux-app-one-config-map-from-env-file
 resources:
 - ../../deploy/flux-app-one
 patches:
