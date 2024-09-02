@@ -21,3 +21,7 @@ spec:
           - "-text=Hello [2] [component], Kubernetes!"
         ports:
         - containerPort: 5678
+        envFrom:
+          - configMapRef:
+              name: flux-app-one-config-map-from-env-file
+              optional: true
