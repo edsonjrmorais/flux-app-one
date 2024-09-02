@@ -14,6 +14,11 @@ commonAnnotations:
   just-a-common-annotation: any-common-annotation-value
   source: flux-cd-training
 
+configMapGenerator:
+- envs:
+  - config_map_file.env
+  name: flux-app-one-config-map-from-env-file
+
 resources:
 - flux-app-one-deployment.yaml
 - flux-app-one-service.yaml
