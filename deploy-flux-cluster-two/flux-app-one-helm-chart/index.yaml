@@ -9,6 +9,6 @@ entries:
     name: flux-app-one-helm-chart
     type: application
     urls:
-    - https://edsonjrmorais.github.io/flux-app-one/deploy-flux-cluster-two/flux-app-one-helm-chart/flux-app-one-helm-chart-0.1.0.tgz
+    - https://edsonjrmorais.github.io/helm-charts/flux-app-one-helm-chart-0.1.0.tgz
     version: 0.1.0
 generated: "2024-09-08T16:06:54.09639603+01:00"
