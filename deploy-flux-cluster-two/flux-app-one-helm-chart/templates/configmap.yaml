@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: flux-app-one-helm-chart-config-map-from-env-file
-data:
-  OPT_ONE: {{ .Values.configMap.OPT_ONE | quote }}
-  OPT_TWO: {{ .Values.configMap.OPT_TWO | quote }}
-  OPT_THREE: {{ .Values.configMap.OPT_THREE | quote }}
