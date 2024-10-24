@@ -1,0 +1,246 @@
+# Pre-req tools
+
+  helm
+  kubctl
+  k3d
+  docker
+  Kustomize
+  Visualiser
+
+# Preparing Docker in a WSL2 environment
+
+  sudo nano /etc/docker/daemon.json
+      {
+          "insecure-registries": ["localhost:5000","k3d-registry.localhost:5000"]
+      }
+  crtl + o  >> enter  >> ctr + x
+
+  sudo nano /etc/hosts  |||  C:\Windows\System32\drivers\etc\hosts
+      127.0.0.1       k3d-registry.localhost
+  crtl + o  >> enter  >> ctr + x
+
+  sudo systemctl restart docker
+
+# Creating  local K#D cluster
+
+  k3d cluster create flux-cluster --config k3d_create_config.yaml
+  k3d registry list
+  k3d cluster get flux-cluster
+  kubectl config current-context
+  kubectl config get-contexts
+  kubectl config use-context k3d-flux-cluster
+
+# Setting up cluster applications
+
+  # Visualiser
+  curl -s "https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest" | grep browser_download_url | grep linux | cut -d '"' -f 4 | wget -qi -
+  tar xzf kustomize_v4.1.3_linux_amd64.tar.gz
+  cd kube-ops-view
+  kubectl apply -f deploy
+  open the service <kube-ops-view> port forwarded
+
+  # Deploying dummy application just to observe the deployment in the visualiser
+  kubectl apply -f dummy-busybox-deployment.yaml
+  wait for 40 seconds
+  kubectl delete -f dummy-busybox-deployment.yaml
+
+  # Flux
+  kubectl create namespace flux-system
+  helm install -n flux-system flux oci://ghcr.io/fluxcd-community/charts/flux2
+
+  # Bootstrap flux-infra in a GH repo
+    export GITHUB_USER=???????
+    export GITHUB_TOKEN=???????
+
+    repo [ https://github.com/edsonjrmorais/flux-infra ]
+    flux check --namespace=flux-system
+    flux bootstrap github --owner=$GITHUB_USER \
+                          --repository=flux-infra \
+                          --branch=main \
+                          --path=./clusters/flux-cluster \
+                          --personal \
+                          --log-level=debug \
+                          --network-policy=false \
+                          --components=source-controller,kustomize-controller
+
+  # Bootstrap flux-app-one in a GH repo
+    repo [ https://github.com/edsonjrmorais/flux-app-one ]
+
+      # just to validate the deployment & service mannually
+      kubectl apply -f flux-app-one-deployment.yaml
+      kubectl apply -f flux-app-one-service.yaml
+      open the service <flux-app-one-service> port forwarded
+
+    flux create source git flux-app-one \
+                           --url=https://github.com/edsonjrmorais/flux-app-one.git \
+                           --branch=main \
+                            --interval=30s \
+                            --export
+    
+    flux get sources git { must show the source [flux-app-one] and the sha of the last commit in main branch }
+
+    kubectl create namespace flux-app-one
+
+    flux create kustomization flux-app-one \
+                                --source=flux-app-one \
+                                --path="./deploy/flux-app-one" \
+                                --prune=true \
+                                --validation=client \
+                                --interval=1m \
+                                --target-namespace=flux-app-one \
+                                --health-check="Deployment/flux-app-one-deployment.flux-app-one" \
+                                --export > flux-app-one-kustomization.yaml
+
+    flux get kustomizations { must show the kustomization [flux-app-one] and the sha of the last commit in main branch }
+
+    # each changes in the manifests [ https://github.com/edsonjrmorais/flux-app-one/deploy ] will be automatically deployed in the cluster
+
+    # Just to see a mannual sync "reconciliation"
+    # The reconciliation runs automatically according to the argument --interval in the flux kustomization and flux source
+    flux reconcile kustomization flux-app-one
+    flux reconcile source git flux-app-one
+
+    # all the steps above, related to source and kustomization, are not AS CODE, I mean there are no files in the repo to represent them
+    # now is time to create the files to represent the source and kustomization
+
+    # cd https://github.com/edsonjrmorais/flux-infra/clusters/flux-cluster + commit below
+    flux export source git flux-app-one >> flux-app-one-gitrepository.yaml
+    flux export kustomization flux-app-one >> flux-app-one-kustomization.yaml
+
+
+    # Adding another component/asset to test Flux dependency
+    flux create kustomization flux-app-one-component \
+                                --source=flux-app-one \
+                                --path="./deploy/flux-app-one-component" \
+                                --prune=true \
+                                --validation=client \
+                                --interval=1m \
+                                --target-namespace=flux-app-one \
+                                --health-check="Deployment/flux-app-one-component-deployment.flux-app-one" \
+                                --depends-on=flux-app-one
+                                # --export > flux-app-one-kustomization.yaml    
+
+  # creating a second cluster to learn overlays
+  k3d cluster create flux-cluster-two --config k3d_create_config_two.yaml
+  k3d cluster get flux-cluster-two
+  kubectl config use-context k3d-flux-cluster-two
+
+  # Flux
+  kubectl create namespace flux-system
+  helm install -n flux-system flux oci://ghcr.io/fluxcd-community/charts/flux2
+
+  # Visualiser
+  cd kube-ops-view
+  kubectl apply -f deploy
+  open the service <kube-ops-view> port forwarded
+
+  # Bootstrap flux-infra in a GH repo
+    flux check --namespace=flux-system
+    flux bootstrap github --owner=$GITHUB_USER \
+                          --repository=flux-infra \
+                          --branch=main \
+                          --path=./clusters/flux-cluster-two \
+                          --personal \
+                          --log-level=debug \
+                          --network-policy=false \
+                          --components=source-controller,kustomize-controller  
+
+      flux create source git flux-app-one \
+                            --url=https://github.com/edsonjrmorais/flux-app-one.git \
+                            --branch=main \
+                              --interval=30s
+
+      kubectl create namespace flux-app-one
+
+      flux create kustomization flux-app-one \
+                                  --source=flux-app-one \
+                                  --path="./deploy-flux-cluster-two/flux-app-one" \
+                                  --prune=true \
+                                  --validation=client \
+                                  --interval=1m \
+                                  --target-namespace=flux-app-one \
+                                  --health-check="Deployment/flux-app-one-deployment.flux-app-one" \
+                                  --export > flux-app-one-kustomization.yaml
+
+      flux get kustomizations { must show the kustomization [flux-app-one] and the sha of the last commit in main branch }
+
+      kubectl create namespace flux-app-one-cluster-two
+
+  # Deploying from Helm charts [ training ref https://lfs269.github.io/helm-charts/ >> postgress example ]
+  kubectl config use-context k3d-flux-cluster-two
+  kubectl create namespace flux-app-one-cluster-two-helm-chart
+  
+  # Manual installation (not using FluxCD)
+  helm source code = https://github.com/edsonjrmorais/flux-app-one/tree/main/deploy-flux-cluster-two/flux-app-one-helm-chart
+  cd flux-app-one/deploy-flux-cluster-two/flux-app-one-helm-chart
+
+  ## local installation
+  helm lint ./
+  helm install flux-app-one-helm-chart . -n flux-app-one-cluster-two-helm-chart --dry-run --debug
+  helm install flux-app-one-helm-chart . -n flux-app-one-cluster-two-helm-chart
+  helm uninstall flux-app-one-helm-chart -n flux-app-one-cluster-two-helm-chart --dry-run --debug
+  helm uninstall flux-app-one-helm-chart -n flux-app-one-cluster-two-helm-chart
+
+  ## remote installation { https://edsonjrmorais.github.io/ }
+  helm repo list
+  helm create flux-app-one-helm-chart
+  helm package flux-app-one-helm-chart
+  helm repo index --url https://edsonjrmorais.github.io/helm-charts/ .  # create Helm Chart index.yaml; after that the index.yaml and .tar.gz must be commited to the repo
+  helm repo add flux-app-one-helm-chart https://edsonjrmorais.github.io/helm-charts/
+  helm repo list
+  helm install release-name flux-app-one-helm-chart -n flux-app-one-cluster-two-helm-chart --dry-run --debug
+  helm install release-name flux-app-one-helm-chart -n flux-app-one-cluster-two-helm-chart
+  helm uninstall release-name -n flux-app-one-cluster-two-helm-chart --dry-run --debug
+  helm uninstall release-name -n flux-app-one-cluster-two-helm-chart
+
+  # Deploying from Helm charts Using FluxCD
+  kubectl config use-context k3d-flux-cluster-two
+
+  flux create source helm flux-app-one-helm \
+                          --url=https://edsonjrmorais.github.io/helm-charts \
+                          --interval=30s \
+                          --export  just to validate the command
+  
+  flux get source all
+  flux get helmreleases
+
+  flux create helmrelease flux-app-one-helm \
+                              --source=HelmRepository/flux-app-one-helm \
+                              --chart=flux-app-one-helm-chart \
+                              --target-namespace=flux-app-one-cluster-two-helm-chart \
+                              --interval=1m \
+                              --export  # just to validate the command
+  
+  flux get source all
+  flux get helmreleases
+
+
+
+  
+
+
+############################### Tear down
+  helm uninstall flux -n flux-system
+  k3d cluster delete flux-cluster
+
+
+
+# ********* OffBoarding and ReOnboarding a kustomization *********
+## Opt 1
+flux suspend kustomization flux-app-one # ( just to know that exist = [ flux resume kustomization flux-app-one ] )
+
+flux delete kustomization flux-app-one
+flux create kustomization flux-app-one \
+                            --source=flux-app-one \
+                            --path="./deploy-flux-cluster-two/flux-app-one" \
+                            --prune=true \
+                            --validation=client \
+                            --interval=1m \
+                            --health-check="Deployment/flux-app-one-deployment.flux-app-one"
+
+
+## Opt 2
+cd ./flux-app-one/deploy-flux-cluster-two
+kubectl delete -k flux-app-one
+kubectl apply -k flux-app-one
+# ********* OffBoarding and ReOnboarding a kustomization *********
